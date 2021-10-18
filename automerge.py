@@ -142,7 +142,7 @@ def _prs(
     return result.stderr
 
 
-def _stats(frepos: Optional[List[str]] = None):
+def _stats(frepos: Optional[List[str]] = None, author: str = "dependabot"):
     """
     fetch stats for the current GitHub account
 
@@ -163,7 +163,9 @@ def _stats(frepos: Optional[List[str]] = None):
     total_stable, total_unstable, unstable_repos, stable_repos = 0, 0, [], []
     for repo in repos:
         repo_stats = {}
-        stable_prs, unstable_prs = _prs(repo), _prs(repo, stability="UNSTABLE")
+        stable_prs, unstable_prs = _prs(repo, author=author), _prs(
+            repo, author=author, stability="UNSTABLE"
+        )
         total_stable, total_unstable = (
             total_stable + len(stable_prs),
             total_unstable + len(unstable_prs),
@@ -282,7 +284,6 @@ def _merge(repo: str, pr_num: int, retries: int = 0, max_retry: int = 5):
     return None
 
 
-
 @click.group()
 def cli():
     """
@@ -302,6 +303,7 @@ def logout():
     """logout of GitHub"""
     subprocess.run(["gh", "auth", "logout"], check=True)
 
+
 @cli.command()
 @click.option("--repos", "-r", multiple=True)
 def info(repos):
@@ -313,11 +315,14 @@ def info(repos):
 
 @cli.command()
 @click.option("--repos", "-r", multiple=True)
-def automerge(repos):
+@click.option("--author", "-a")
+def automerge(repos, author=None):
     """automerge all[stable] GitHub PRs"""
     print("fetching GitHub data...")
     # author can be passed to stats -> get prs
-    stats = _stats(repos)
+    if author is None:
+        author = "dependabot"
+    stats = _stats(repos, author=author)
     _display(stats)
     if stats["total_stable"] > 0:
         for repo in _repos():
