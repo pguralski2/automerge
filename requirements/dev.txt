@@ -1,0 +1,4 @@
+black==21.9b0
+pylint==2.11.1
+click==8.0.3
+pdoc==8.0.0
