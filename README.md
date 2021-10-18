@@ -41,9 +41,20 @@ authenticate using `automerge login`
 
 ***
 
+## install
+`automerge` isn't available on `pypi` yet but you can install it
+
+```bash
+  $ git clone https://github.com/abmamo/automerge
+  $ cd automerge
+  $ python setup.py install
+```
+
 ##  quickstart
 
 ```
+automerge --help
+
 Usage: automerge [OPTIONS] COMMAND [ARGS]...
 
   automerge is a simple python CLI that automatically merges GitHub PRs
