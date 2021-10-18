@@ -238,7 +238,6 @@ def cli():
     automerge is a simple python CLI that automatically
     merges GitHub PRs
     """
-    pass
 
 
 @cli.command()

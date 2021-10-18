@@ -27,10 +27,10 @@ setup(
     packages=find_packages(exclude=("tests", "venv", "env")),
     install_requires=requirements,
     zip_safe=False,
-    py_modules=['automerge'],
+    py_modules=["automerge"],
     entry_points={
-        'console_scripts': [
-            'automerge = automerge:cli',
+        "console_scripts": [
+            "automerge = automerge:cli",
         ],
     },
 )
