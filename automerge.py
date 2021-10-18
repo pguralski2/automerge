@@ -90,7 +90,7 @@ def _prs(
     repo: str,
     author: str = "dependabot",
     mergeable: str = "MERGEABLE",
-    state: str = "CLOSED",
+    state: str = "OPEN",
     stability: str = "CLEAN",
 ):
     """get prs for a given repo
