@@ -18,8 +18,6 @@ authenticate using `automerge login`
 
 *info*: get info abount PRs in current account
 
-*merge*: take the name of a repo + a PR num & merge if stable
-
 *automerge*: merge all valid PRs in current account
 
 ***
@@ -37,6 +35,8 @@ authenticate using `automerge login`
 *_stats*: get stats for current account
 
 *_display*: display info abount current account
+
+*_merge*: take the name of a repo + a PR num & merge if stable
 
 ***
 """
@@ -206,7 +206,7 @@ def _display(stats):
         if key
         not in ["total_stable", "total_unstable", "stable_repos", "unstable_repos"]
     ]
-    print("displaying data for: \n")
+    print("repos: \n")
     for reponame in reponames:
         print(f"\t{reponame}")
     print()
@@ -232,6 +232,57 @@ def _display(stats):
             print(f"\t{repo}\t{stats[repo]['num_unstable']}")
 
 
+def _merge(repo: str, pr_num: int, retries: int = 0, max_retry: int = 5):
+    """
+    merge a GitHub PR using repo name + PR num
+
+    ***
+
+    **parameters**
+
+    ***
+
+    *repo*: GitHub repo we are trying to merge PR into
+
+    *pr_num*: PR num to merge
+
+    *retries*: number of times merge function has been called
+                 (if > 5 merge will fail)
+    ***
+    """
+    try:
+        result = subprocess.run(
+            [
+                "gh",
+                "pr",
+                "-R",
+                str(repo),
+                "merge",
+                str(pr_num),
+                "--auto",
+                "--delete-branch",
+                "--merge",
+            ],
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        print(f"couldn't merge {pr_num} in {repo} retrying in: 30s")
+        time.sleep(30)
+        _merge(repo, pr_num, retries + 1)
+    if retries > max_retry:
+        print(f"couldn't merge {pr_num} in {repo} with err {result.stderr}")
+        return None
+    if "not in the correct state to enable auto-merge" in result.stderr.decode("ascii"):
+        print(f"couldn't merge {pr_num} in {repo} retrying in: 30s")
+        time.sleep(30)
+        _merge(repo, pr_num, retries + 1)
+    if not result.stderr:
+        return True
+    return None
+
+
+
 @click.group()
 def cli():
     """
@@ -250,56 +301,6 @@ def login():
 def logout():
     """logout of GitHub"""
     subprocess.run(["gh", "auth", "logout"], check=True)
-
-
-@cli.command()
-@click.argument("repo")
-@click.argument("pr_num")
-@click.argument("max_retry")
-def merge(repo: str, pr_num: int, retries: int = 0, max_retry: int = 5):
-    """
-    merge a GitHub PR using repo name + PR num
-
-    ***
-
-    **parameters**
-
-    ***
-
-    *repo*: GitHub repo we are trying to merge PR into
-
-    *pr_num*: PR num to merge
-
-    *retries*: number of times merge function has been called
-                 (if > 5 merge will fail)
-    ***
-    """
-    result = subprocess.run(
-        [
-            "gh",
-            "pr",
-            "-R",
-            str(repo),
-            "merge",
-            str(pr_num),
-            "--auto",
-            "--delete-branch",
-            "--merge",
-        ],
-        capture_output=True,
-        check=True,
-    )
-    if retries > max_retry:
-        print(f"couldn't merge {pr_num} in {repo} with err {result.stderr}")
-        return None
-    if "not in the correct state to enable auto-merge" in result.stderr.decode("ascii"):
-        print(f"couldn't merge {pr_num} in {repo} retrying in: 30s")
-        time.sleep(30)
-        merge(repo, pr_num, retries + 1)
-    if not result.stderr:
-        return True
-    return None
-
 
 @cli.command()
 @click.option("--repos", "-r", multiple=True)
@@ -322,13 +323,14 @@ def automerge(repos):
         for repo in _repos():
             prs = stats[repo]["stable_prs"]
             pr_nums = [pr["number"] for pr in prs]
-            print(f"automerging {len(pr_nums)} PRs in {repo}")
-            for pr_num in pr_nums:
-                merged = merge(repo, pr_num)
-                if merged:
-                    print(f"successfully merged {pr_num} in {repo}")
-                else:
-                    print(f"error merging {pr_num} in {repo}")
+            if len(pr_nums) > 0:
+                print(f"automerging {len(pr_nums)} PRs in {repo}")
+                for pr_num in pr_nums:
+                    merged = _merge(repo, pr_num)
+                    if merged:
+                        print(f"successfully merged {pr_num} in {repo}")
+                    else:
+                        print(f"error merging {pr_num} in {repo}")
 
 
 if __name__ == "__main__":
