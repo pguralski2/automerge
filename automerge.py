@@ -253,7 +253,7 @@ def _merge(repo: str, pr_num: int, retries: int = 0, max_retry: int = 5):
     ***
     """
     if retries > max_retry:
-        print(f"couldn't merge {pr_num} in {repo} with err {result.stderr}")
+        print(f"couldn't merge PR: {pr_num} in repo: {repo} retried: {max_retry} times")
         return None
     try:
         result = subprocess.run(
@@ -271,7 +271,9 @@ def _merge(repo: str, pr_num: int, retries: int = 0, max_retry: int = 5):
             capture_output=True,
             check=True,
         )
-        if "not in the correct state to enable auto-merge" in result.stderr.decode("ascii"):
+        if "not in the correct state to enable auto-merge" in result.stderr.decode(
+            "ascii"
+        ):
             print(f"couldn't merge {pr_num} in {repo} retrying in: 30s")
             time.sleep(30)
             _merge(repo, pr_num, retries + 1)
