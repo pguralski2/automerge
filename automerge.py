@@ -65,7 +65,7 @@ def _from_url(url: str):
     return f"{pathlib.Path(url).parent.name}/{pathlib.Path(url).name}"
 
 
-def _repos():
+def _repos(frepos: Optional[List[str]] = None):
     """
     get all repos in current account
 
@@ -82,6 +82,8 @@ def _repos():
         gh_urls = json.loads(result.stdout.decode("ascii"))
         urls = [gh_url["url"] for gh_url in gh_urls]
         repos = [_from_url(url) for url in urls]
+        if frepos:
+            repos = [repo for repo in repos if repo in frepos]
         return repos
     return result.stderr
 
@@ -253,7 +255,7 @@ def _merge(repo: str, pr_num: int, retries: int = 0, max_retry: int = 5):
     ***
     """
     if retries > max_retry:
-        print(f"couldn't merge PR: {pr_num} in repo: {repo} retried: {max_retry} times")
+        print(f"couldn't merge {pr_num} tried {max_retry} times :(")
         return None
     try:
         result = subprocess.run(
