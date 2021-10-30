@@ -18,7 +18,7 @@ authenticate using `automerge login`
 
 *info*: get info abount PRs in current account
 
-*automerge*: merge all valid PRs in current account
+*merge*: merge all valid PRs in current account
 
 ***
 
@@ -320,8 +320,8 @@ def info(repos):
 @cli.command()
 @click.option("--repos", "-r", multiple=True)
 @click.option("--author", "-a")
-def automerge(repos, author=None):
-    """automerge all[stable] GitHub PRs"""
+def merge(repos, author=None):
+    """merge all[stable] GitHub PRs"""
     print("fetching GitHub data...")
     # author can be passed to stats -> get prs
     if author is None:
