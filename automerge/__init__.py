@@ -311,7 +311,7 @@ def logout():
 @cli.command()
 @click.option("--repos", "-r", multiple=True)
 def info(repos):
-    """get info abount GitHub PRs"""
+    """merge all stable/unstable PRs"""
     print("fetching GitHub data...")
     stats = _stats(repos)
     _display(stats)
@@ -321,7 +321,7 @@ def info(repos):
 @click.option("--repos", "-r", multiple=True)
 @click.option("--author", "-a")
 def merge(repos, author=None):
-    """merge all[stable] GitHub PRs"""
+    """merge all[stable] PRs"""
     print("fetching GitHub data...")
     # author can be passed to stats -> get prs
     if author is None:
