@@ -63,9 +63,8 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  merge      automerge all[stable] PRs (by default only PRs authored by dependabot)
-  info       get info abount mergable / unmergable PRs
-  login      login to GitHub
-  logout     logout of GitHub
-  merge      merge a GitHub PR using repo name + PR num
+  info    merge all stable/unstable PRs
+  login   login to GitHub
+  logout  logout of GitHub
+  merge   merge all[stable] PRs
 ```
