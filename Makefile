@@ -1,7 +1,7 @@
 pn := automerge
 mn := automerge
 tn := tests
-opts := -vv
+
 
 ifeq ($(version),)
 version := 0.0.1
@@ -12,6 +12,10 @@ endif
 ifeq ($(branch),)
 branch := main
 endif
+ifeq ($(opts),)
+opts := -vv
+endif
+
 
 
 help:
