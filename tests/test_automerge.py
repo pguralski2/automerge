@@ -243,4 +243,4 @@ def test_merge(mock_stats):  # pylint: disable=redefined-outer-name,unused-argum
     """test automerge merge command"""
     runner = CliRunner()
     result = runner.invoke(merge)
-    assert result.exit_code == 0
+    assert "fetching GitHub data..." in result.stdout
