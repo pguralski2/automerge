@@ -25,7 +25,7 @@ module) CLI and requires you to authenticate using `automerge login`
 import pytest
 from click.testing import CliRunner
 
-from automerge import cli
+from automerge import merge, info
 
 MOCK_USER = "mergy"
 MOCK_REPO = "reppy"
@@ -223,24 +223,24 @@ MOCK_STATS = {
 @pytest.fixture
 def mock_stats(monkeypatch):
     """mock return of the _stats function"""
-    monkeypatch.setattr("cli._stats", lambda x: MOCK_STATS)
+    monkeypatch.setattr("automerge._stats", lambda x: MOCK_STATS)
 
 
 @pytest.fixture
 def mock_merge(monkeypatch):
     """mock return of the _merge function"""
-    monkeypatch.setattr("cli._merge", lambda x: True)
+    monkeypatch.setattr("automerge._merge", lambda x: True)
 
 
 def test_info(mock_stats):  # pylint: disable=redefined-outer-name,unused-argument
     """test automerge login command"""
     runner = CliRunner()
-    result = runner.invoke(cli, ["info"])
+    result = runner.invoke(info)
     assert result.exit_code == 0
 
 
 def test_merge(mock_stats):  # pylint: disable=redefined-outer-name,unused-argument
     """test automerge merge command"""
     runner = CliRunner()
-    result = runner.invoke(cli, ["merge"])
+    result = runner.invoke(merge)
     assert result.exit_code == 0
