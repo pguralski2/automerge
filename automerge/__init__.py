@@ -26,7 +26,7 @@ authenticate using `automerge login`
 
 ***
 
-*_from_url*: get owner/repo from git url
+*from_url*: get owner/repo from git url
 
 *_repos*: get all repos in current account
 
@@ -42,15 +42,16 @@ authenticate using `automerge login`
 """
 import json
 import time
-import pathlib
 import subprocess
 from typing import Optional, List
 
 import click
 
+from automerge.utils import from_url, col_print
 
-def _from_url(url: str):
-    """helper function to get owner/repo from git url
+
+def _execute(cmd):
+    """execute shell command
 
     ***
 
@@ -58,11 +59,13 @@ def _from_url(url: str):
 
     ***
 
-    *url*: git repo url
-
-    ***
+    *cmd*: shell command to execute
     """
-    return f"{pathlib.Path(url).parent.name}/{pathlib.Path(url).name}"
+    with subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    ) as cmd_process:
+        stdout, stderr = cmd_process.communicate()
+        return cmd_process, stdout, stderr
 
 
 def _repos(frepos: Optional[List[str]] = None):
@@ -75,17 +78,16 @@ def _repos(frepos: Optional[List[str]] = None):
         ii) extract each url from result & store in a python list
         iii) get the owner/repo from each url (needed by `gh` for merging)
     """
-    result = subprocess.run(
-        ["gh", "repo", "list", "--json", "url"], capture_output=True, check=True
-    )
-    if not result.stderr:
-        gh_urls = json.loads(result.stdout.decode("ascii"))
-        urls = [gh_url["url"] for gh_url in gh_urls]
-        repos = [_from_url(url) for url in urls]
-        if frepos:
-            repos = [repo for repo in repos if repo in frepos]
-        return repos
-    return result.stderr
+    cmd = ["gh", "repo", "list", "--json", "url"]
+    cmd_process, stdout, stderr = _execute(cmd)
+    if cmd_process.returncode != 0 or stderr:
+        return stderr
+    gh_urls = json.loads(stdout.decode("ascii"))
+    urls = [gh_url["url"] for gh_url in gh_urls]
+    repos = [from_url(url) for url in urls]
+    if frepos:
+        repos = [repo for repo in repos if repo in frepos]
+    return repos
 
 
 def _prs(
@@ -117,31 +119,29 @@ def _prs(
 
     ***
     """
-    result = subprocess.run(
-        [
-            "gh",
-            "pr",
-            "-R",
-            repo,
-            "list",
-            "--json",
-            "number,author,state,mergeable,mergeStateStatus",
-        ],
-        capture_output=True,
-        check=True,
-    )
-    if not result.stderr:
-        gh_prs = json.loads(result.stdout.decode("ascii"))
-        prs = [
-            pr
-            for pr in gh_prs
-            if pr["author"]["login"] == author
-            and pr["mergeable"] == mergeable
-            and pr["state"] == state
-            and pr["mergeStateStatus"] == stability
-        ]
-        return prs
-    return result.stderr
+    cmd = [
+        "gh",
+        "pr",
+        "-R",
+        repo,
+        "list",
+        "--json",
+        "number,author,state,mergeable,mergeStateStatus,url",
+    ]
+    cmd_process, stdout, stderr = _execute(cmd)
+    if cmd_process.returncode != 0 or stderr:
+        return stderr
+
+    gh_prs = json.loads(stdout.decode("ascii"))
+    prs = [
+        pr
+        for pr in gh_prs
+        if pr["author"]["login"] == author
+        and pr["mergeable"] == mergeable
+        and pr["state"] == state
+        and pr["mergeStateStatus"] == stability
+    ]
+    return prs
 
 
 def _stats(frepos: Optional[List[str]] = None, author: str = "dependabot"):
@@ -162,12 +162,22 @@ def _stats(frepos: Optional[List[str]] = None, author: str = "dependabot"):
     repos = _repos()
     if frepos:
         repos = [repo for repo in repos if repo in frepos]
-    total_stable, total_unstable, unstable_repos, stable_repos = 0, 0, [], []
+    (
+        total_stable,
+        total_unstable,
+        unstable_repos,
+        stable_repos,
+        total_unstable_prs,
+        total_stable_prs,
+    ) = (0, 0, [], [], [], [])
     for repo in repos:
         repo_stats = {}
-        stable_prs, unstable_prs = _prs(repo, author=author), _prs(
-            repo, author=author, stability="UNSTABLE"
-        )
+        stable_prs, unstable_prs = [pr["url"] for pr in _prs(repo, author=author)], [
+            pr["url"] for pr in _prs(repo, author=author, stability="UNSTABLE")
+        ]
+        total_unstable_prs.extend(unstable_prs)
+        total_stable_prs.extend(stable_prs)
+
         total_stable, total_unstable = (
             total_stable + len(stable_prs),
             total_unstable + len(unstable_prs),
@@ -188,10 +198,13 @@ def _stats(frepos: Optional[List[str]] = None, author: str = "dependabot"):
     data["total_unstable"] = total_unstable
     data["stable_repos"] = stable_repos
     data["unstable_repos"] = unstable_repos
+    data["stable_prs"] = total_stable_prs
+    data["unstable_prs"] = total_unstable_prs
+    print(data)
     return data
 
 
-def _display(stats):
+def _display(stats, verbose=True):
     """display general stats in terminal about GitHub PRs
 
     ***
@@ -210,30 +223,36 @@ def _display(stats):
         if key
         not in ["total_stable", "total_unstable", "stable_repos", "unstable_repos"]
     ]
-    print("repos: \n")
-    for reponame in reponames:
-        print(f"\t{reponame}")
+    print(f"found {len(reponames)} repos")
+    if verbose:
+        col_print(reponames)
     print()
     if stats["total_stable"] == 0:
-        print(f"total stable PRs: {stats['total_stable']}")
-        print(f"total repos: {len(reponames)}")
-        print(f"total unstable PRs: {stats['total_unstable']}")
-        print(
-            f"total unstable repos (require manual effort): {len(stats['unstable_repos'])}"
-        )
-        for repo in stats["unstable_repos"]:
-            print(f"\t{repo}\t{stats[repo]['num_unstable']}")
-        print()
         print("no PRs found for automerging!")
+        print(f"unstable repos require manual effort: {len(stats['unstable_repos'])}")
+        if verbose:
+            col_print(stats["unstable_repos"])
+        print(f"total unstable PRs: {len(stats['unstable_prs'])}")
+        if verbose:
+            col_print(stats["unstable_prs"])
+        print()
     else:
-        print(f"total stable PRs: {stats['total_stable']}")
-        print(f"total repos (ready for automerging): {len(reponames)}")
-        print(f"total unstable PRs: {stats['total_unstable']}")
+        print("PRs found for automerging!")
+        print(f"repos with PRs ready for automerging: {len(stats['stable_repos'])}")
+        if verbose:
+            col_print(stats["stable_repos"])
+        print(f"total stable PRs: {len(stats['stable_prs'])}")
+        if verbose:
+            col_print(stats["stable_prs"])
         print(
-            f"total unstable repos (require manual effort): {len(stats['unstable_repos'])}"
+            f"total unstable repos (with PRs that require manual effort): {len(stats['unstable_repos'])}"  # pylint: disable=line-too-long
         )
-        for repo in stats["unstable_repos"]:
-            print(f"\t{repo}\t{stats[repo]['num_unstable']}")
+        if verbose:
+            col_print(stats["unstable_repos"])
+        print(f"total unstable PRs: {len(stats['unstable_prs'])}")
+        if verbose:
+            col_print(stats["unstable_prs"])
+        print()
 
 
 def _merge(repo: str, pr_num: int, retries: int = 0, max_retry: int = 5):
@@ -276,7 +295,6 @@ def _merge(repo: str, pr_num: int, retries: int = 0, max_retry: int = 5):
         if "not in the correct state to enable auto-merge" in result.stderr.decode(
             "ascii"
         ):
-            print(f"couldn't merge {pr_num} in {repo} retrying in: 30s")
             time.sleep(30)
             _merge(repo, pr_num, retries + 1)
         if not result.stderr:
@@ -310,24 +328,30 @@ def logout():
 
 @cli.command()
 @click.option("--repos", "-r", multiple=True)
-def info(repos):
+@click.option(
+    "--verbose", "-v", is_flag=True, help="display more detailed information."
+)
+def info(repos, verbose):
     """merge all stable/unstable PRs"""
     print("fetching GitHub data...")
     stats = _stats(repos)
-    _display(stats)
+    _display(stats, verbose=verbose)
 
 
 @cli.command()
 @click.option("--repos", "-r", multiple=True)
 @click.option("--author", "-a")
-def merge(repos, author=None):
+@click.option(
+    "--verbose", "-v", is_flag=True, help="display more detailed information."
+)
+def merge(repos, verbose, author=None):
     """merge all[stable] PRs"""
     print("fetching GitHub data...")
     # author can be passed to stats -> get prs
     if author is None:
         author = "dependabot"
     stats = _stats(repos, author=author)
-    _display(stats)
+    _display(stats, verbose=verbose)
     if stats["total_stable"] > 0:
         for repo in _repos():
             prs = stats[repo]["stable_prs"]
