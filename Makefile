@@ -24,7 +24,7 @@ help:
 	@echo "save               	- save changes locally using git"
 	@echo "save-remote          	- save changes to remote using git"
 	@echo "release          	- release current version (just tags master with current version & pushes to master)"
-	@echo "install              - install package dependencies"
+	@echo "install              	- install package dependencies"
 	@echo "test           		- run tests using pytest"
 	@echo "format             	- format code using black"
 	@echo "lint           		- lint code using pylint"
