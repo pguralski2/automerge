@@ -24,6 +24,7 @@ help:
 	@echo "save               	- save changes locally using git"
 	@echo "save-remote          	- save changes to remote using git"
 	@echo "release          	- release current version (just tags master with current version & pushes to master)"
+	@echo "install              - install package dependencies"
 	@echo "test           		- run tests using pytest"
 	@echo "format             	- format code using black"
 	@echo "lint           		- lint code using pylint"
@@ -39,6 +40,10 @@ save-remote:
 
 release:
 	git tag -d ${version} || : && git push --delete origin ${version} || : && git tag -a ${version} -m "latest" && git push origin --tags
+
+install:
+	python3 -m pip install --upgrade pip setuptools wheel
+	if [ -f requirements/dev.txt ]; then pip install -r requirements/dev.txt; fi
 
 test:
 	@echo "running tests..." && python3 -m pytest --cov-report term-missing --cov=${mn} ${tn} ${opts}

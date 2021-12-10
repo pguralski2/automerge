@@ -19,9 +19,7 @@ jobs:
 
       - name: install
         run: |
-          python3 -m pip install --upgrade pip setuptools
-          pip3 install .
-          if [ -f requirements/dev.txt ]; then pip install -r requirements/dev.txt; fi
+          make install
 
       - name: lint
         run: |
