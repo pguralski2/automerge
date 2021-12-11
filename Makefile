@@ -44,6 +44,7 @@ release:
 install:
 	python3 -m pip install --upgrade pip setuptools wheel
 	if [ -f requirements/dev.txt ]; then pip install -r requirements/dev.txt; fi
+	pip3 install .
 
 test:
 	@echo "running tests..." && python3 -m pytest --cov-report term-missing --cov=${mn} ${tn} ${opts}
