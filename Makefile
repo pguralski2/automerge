@@ -104,7 +104,7 @@ deps-prod:
 ## run tests [pytest]
 test:
 	@echo "running tests..."
-	@python3 -m pytest --cov-report term-missing --cov=${mn} ${tn} ${opts}
+	@python3 -m pytest --durations=10 --cov-report term-missing --cov=${mn} ${tn} ${opts}
 
 ## run test profiling [pytest-profiling]
 profile:
