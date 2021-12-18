@@ -223,13 +223,13 @@ MOCK_STATS = {
 @pytest.fixture
 def mock_stats(monkeypatch):
     """mock return of the _stats function"""
-    monkeypatch.setattr("src._stats", lambda x: MOCK_STATS)
+    monkeypatch.setattr("automerge._stats", lambda x: MOCK_STATS)
 
 
 @pytest.fixture
 def mock_merge(monkeypatch):
     """mock return of the _merge function"""
-    monkeypatch.setattr("src._merge", lambda x: True)
+    monkeypatch.setattr("automerge._merge", lambda x: True)
 
 
 def test_info(mock_stats):  # pylint: disable=redefined-outer-name,unused-argument
