@@ -44,7 +44,7 @@ import subprocess
 
 import click
 
-from automerge.utils import _stats, _display, _repos, _merge
+from src.utils import _stats, _display, _repos, _merge
 
 
 @click.group()
