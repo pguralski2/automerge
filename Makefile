@@ -44,7 +44,7 @@ TARGET_MAX_CHAR_NUM=20
 help:
 	@echo ''
 	@echo 'usage:'
-	@echo '  ${BLUE}make${RESET} ${GREEN}<cmd>${RESET}'
+	@echo '  ${BLUE}make${RESET} ${RED}<cmd>${RESET}'
 	@echo ''
 	@echo 'cmds:'
 	@awk '/^[a-zA-Z\-\_0-9]+:/ { \
@@ -65,6 +65,10 @@ save-local:
 ## save changes to remote using git
 save-remote:
 	@echo "saving to remote..." && git push origin ${branch}
+
+## pull changes from remote
+pull-remote:
+	@echo "pulling from remote..." && git merge origin ${branch}
 
 ## create new tag, delete if there is an existing
 tag:
