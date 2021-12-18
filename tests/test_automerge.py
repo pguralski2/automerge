@@ -25,7 +25,7 @@ module) CLI and requires you to authenticate using `automerge login`
 import pytest
 from click.testing import CliRunner
 
-from src import merge, info
+from automerge import merge, info
 
 MOCK_USER = "mergy"
 MOCK_REPO = "reppy"
