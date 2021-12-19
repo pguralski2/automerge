@@ -14,17 +14,20 @@ endif
 ifeq ($(opts),)
 opts := -vv
 endif
+ifeq ($(deptype),)
+deptype := dev
+endif
 
 # COLORS
 ifneq (,$(findstring xterm,${TERM}))
-	BLACK        := $(shell tput -Txterm setaf 0)
-	RED          := $(shell tput -Txterm setaf 1)
-	GREEN        := $(shell tput -Txterm setaf 2)
-	YELLOW       := $(shell tput -Txterm setaf 3)
-	LIGHTPURPLE  := $(shell tput -Txterm setaf 4)
-	PURPLE       := $(shell tput -Txterm setaf 5)
-	BLUE         := $(shell tput -Txterm setaf 6)
-	WHITE        := $(shell tput -Txterm setaf 7)
+	BLACK        := $(shell tput -Txterm setaf 0 || "")
+	RED          := $(shell tput -Txterm setaf 1 || "")
+	GREEN        := $(shell tput -Txterm setaf 2 || "")
+	YELLOW       := $(shell tput -Txterm setaf 3 || "")
+	LIGHTPURPLE  := $(shell tput -Txterm setaf 4 || "")
+	PURPLE       := $(shell tput -Txterm setaf 5 || "")
+	BLUE         := $(shell tput -Txterm setaf 6 || "")
+	WHITE        := $(shell tput -Txterm setaf 7 || "")
 	RESET := $(shell tput -Txterm sgr0)
 else
 	BLACK        := ""
@@ -91,15 +94,10 @@ pkg-build:
 pkg-install:
 	@echo "installing..." && python3 setup.py install
 
-## install package dependencies [dev]
-deps-dev:
+## install package dependencies [deptype = dev | prod]
+deps:
 	@python3 -m pip install --upgrade pip setuptools wheel
-	@if [ -f requirements/dev.txt ]; then pip install -r requirements/dev.txt; fi
-
-## install package dependencies [prod]
-deps-prod:
-	@python3 -m pip install --upgrade pip setuptools wheel
-	@if [ -f requirements/prod.txt ]; then pip install -r requirements/prod.txt; fi
+	@if [ -f requirements/${deptype}.txt ]; then pip install -r requirements/${deptype}.txt; fi
 
 ## run tests [pytest]
 test:
