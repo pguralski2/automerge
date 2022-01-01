@@ -11,11 +11,11 @@ endif
 ifeq ($(branch),)
 branch := main
 endif
-ifeq ($(opts),)
-opts := -vv
+ifeq ($(topts),)
+topts := -vv
 endif
-ifeq ($(deptype),)
-deptype := dev
+ifeq ($(dtype),)
+dtype := development
 endif
 
 .DEFAULT_GOAL := help
@@ -92,7 +92,7 @@ save-remote:
 ## pull changes from remote
 pull-remote:
 	@echo "pulling from remote..."
-	@git merge origin ${branch}
+	@git pull origin ${branch}
 
 ## create new tag, recreate if it exists
 tag:
@@ -111,22 +111,22 @@ pkg-build:
 pkg-install:
 	@echo "installing..." && python3 setup.py install
 
-## install package dependencies [deptype = dev | prod]
+## install package dependencies [dtype = development | production]
 deps:
 	@python3 -m pip install --upgrade pip setuptools wheel
-	@if [ -f requirements/${deptype}.txt ]; then pip install -r requirements/${deptype}.txt; fi
+	@if [ -f requirements/${dtype}.txt ]; then pip install -r requirements/${dtype}.txt; fi
 
 ## run tests [pytest]
 test:
 	@echo "running tests..."
-	@python3 -m pytest --durations=10 --cov-report term-missing --cov=${mn} ${tn} ${opts}
+	@python3 -m pytest --durations=10 --cov-report term-missing --cov=${mn} ${tn} ${topts}
 
 ## -- code quality --
 
 ## run test profiling [pytest-profiling]
 profile:
 	@echo "running tests..."
-	@python3 -m pytest --profile ${tn} ${opts}
+	@python3 -m pytest --profile ${tn} ${topts}
 
 ## run formatting [black]
 format:
