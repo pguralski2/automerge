@@ -18,16 +18,18 @@ ifeq ($(deptype),)
 deptype := dev
 endif
 
+.DEFAULT_GOAL := help
+TARGET_MAX_CHAR_NUM=20
 # COLORS
 ifneq (,$(findstring xterm,${TERM}))
-	BLACK        := $(shell tput -Txterm setaf 0 || "")
-	RED          := $(shell tput -Txterm setaf 1 || "")
-	GREEN        := $(shell tput -Txterm setaf 2 || "")
-	YELLOW       := $(shell tput -Txterm setaf 3 || "")
-	LIGHTPURPLE  := $(shell tput -Txterm setaf 4 || "")
-	PURPLE       := $(shell tput -Txterm setaf 5 || "")
-	BLUE         := $(shell tput -Txterm setaf 6 || "")
-	WHITE        := $(shell tput -Txterm setaf 7 || "")
+	BLACK        := $(shell tput -Txterm setaf 0 || exit 0)
+	RED          := $(shell tput -Txterm setaf 1 || exit 0)
+	GREEN        := $(shell tput -Txterm setaf 2 || exit 0)
+	YELLOW       := $(shell tput -Txterm setaf 3 || exit 0)
+	LIGHTPURPLE  := $(shell tput -Txterm setaf 4 || exit 0)
+	PURPLE       := $(shell tput -Txterm setaf 5 || exit 0)
+	BLUE         := $(shell tput -Txterm setaf 6 || exit 0)
+	WHITE        := $(shell tput -Txterm setaf 7 || exit 0)
 	RESET := $(shell tput -Txterm sgr0)
 else
 	BLACK        := ""
@@ -41,33 +43,48 @@ else
 	RESET        := ""
 endif
 
-
-TARGET_MAX_CHAR_NUM=20
-## show help
+## show usage / common commands available
+.PHONY: help
 help:
-	@echo ''
-	@echo 'usage:'
-	@echo '  ${BLUE}make${RESET} ${RED}<cmd>${RESET}'
-	@echo ''
-	@echo 'cmds:'
-	@awk '/^[a-zA-Z\-\_0-9]+:/ { \
-		helpMessage = match(lastLine, /^## (.*)/); \
-		if (helpMessage) { \
-			helpCommand = substr($$1, 0, index($$1, ":")-1); \
-			helpMessage = substr(lastLine, RSTART + 3, RLENGTH); \
-			printf "  ${PURPLE}%-$(TARGET_MAX_CHAR_NUM)s${RESET} ${GREEN}%s${RESET}\n", helpCommand, helpMessage; \
-		} \
-	} \
-	{ lastLine = $$0 }' $(MAKEFILE_LIST)
+	@printf "${RED}cmds:\n\n";
 
-# SCM #
-## save changes locally using git
+	@awk '{ \
+			if ($$0 ~ /^.PHONY: [a-zA-Z\-\_0-9]+$$/) { \
+				helpCommand = substr($$0, index($$0, ":") + 2); \
+				if (helpMessage) { \
+					printf "  ${PURPLE}%-$(TARGET_MAX_CHAR_NUM)s${RESET} ${GREEN}%s${RESET}\n\n", helpCommand, helpMessage; \
+					helpMessage = ""; \
+				} \
+			} else if ($$0 ~ /^[a-zA-Z\-\_0-9.]+:/) { \
+				helpCommand = substr($$0, 0, index($$0, ":")); \
+				if (helpMessage) { \
+					printf "  ${YELLOW}%-$(TARGET_MAX_CHAR_NUM)s${RESET} ${GREEN}%s${RESET}\n", helpCommand, helpMessage; \
+					helpMessage = ""; \
+				} \
+			} else if ($$0 ~ /^##/) { \
+				if (helpMessage) { \
+					helpMessage = helpMessage"\n                     "substr($$0, 3); \
+				} else { \
+					helpMessage = substr($$0, 3); \
+				} \
+			} else { \
+				if (helpMessage) { \
+					print "\n${LIGHTPURPLE}             "helpMessage"\n" \
+				} \
+				helpMessage = ""; \
+			} \
+		}' \
+		$(MAKEFILE_LIST)
+
+## -- git --
+
+## save changes locally [git]
 save-local:
 	@echo "saving..."
 	@git add .
 	@git commit -m "${cm}"
 
-## save changes to remote using git
+## save changes to remote [git]
 save-remote:
 	@echo "saving to remote..."
 	@git push origin ${branch}
@@ -83,9 +100,9 @@ tag:
 	git push --delete origin ${version} || : 
 	git tag -a ${version} -m "latest" 
 	git push origin --tags
-#######
 
-# DEV #
+## -- python --
+
 ## build package
 pkg-build:
 	@echo "building..." && python3 setup.py build
@@ -103,6 +120,8 @@ deps:
 test:
 	@echo "running tests..."
 	@python3 -m pytest --durations=10 --cov-report term-missing --cov=${mn} ${tn} ${opts}
+
+## -- code quality --
 
 ## run test profiling [pytest-profiling]
 profile:
@@ -144,9 +163,9 @@ scan-deadcode:
 scan-security:
 	@echo "checking for security issues..."
 	@bandit ${mn}
-#######
 
-# DOCS #
+## -- docs --
+
 ## build docs [pdoc]
 docs-build:
 	@echo "building docs..."
@@ -155,4 +174,3 @@ docs-build:
 ## serve docs [pdoc]
 docs-serve:
 	@python3 -m pdoc ${mn}
-#######
