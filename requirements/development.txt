@@ -7,6 +7,6 @@ pdoc==8.1.0
 pytest==6.2.5
 pytest-cov==3.0.0
 pytest-profiling==1.7.0
-pyre-check==0.9.9
+pyre-check==0.9.10
 bandit==1.7.1
 vulture==2.3
