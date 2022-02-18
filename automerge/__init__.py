@@ -93,7 +93,7 @@ def merge(repos, verbose, author=None):
         author = "dependabot"
     stats = _stats(repos, author=author)
     _display(stats, verbose=verbose)
-    if stats["total_stable"] > 0:
+    while stats["total_stable"] > 0:
         for repo in _repos():
             prs = stats[repo]["stable_prs"]
             if verbose:
@@ -109,6 +109,7 @@ def merge(repos, verbose, author=None):
                         print(f"successfully merged {pr_num} in {repo}")
                     else:
                         print(f"error merging {pr_num} in {repo}")
+        stats = _stats(repos, author=author)
 
 
 if __name__ == "__main__":

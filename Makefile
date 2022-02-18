@@ -174,3 +174,10 @@ docs-build:
 ## serve docs [pdoc]
 docs-serve:
 	@python3 -m pdoc ${mn}
+
+## -- docker --
+
+## build image [docker]
+image-build:
+	@echo "building image..."
+	@docker build . -t ${pn}:latest
