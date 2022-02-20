@@ -114,6 +114,7 @@ pkg-install:
 ## install package dependencies [dtype = development | production]
 deps:
 	@python3 -m pip install --upgrade pip setuptools wheel
+	@python3 -m pip install .
 	@if [ -f requirements/${dtype}.txt ]; then pip install -r requirements/${dtype}.txt; fi
 
 ## run tests [pytest]
