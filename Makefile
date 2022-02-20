@@ -182,3 +182,8 @@ docs-serve:
 build-env:
 	@echo "building image..."
 	@docker build . -t ${pn}:${ctag}
+
+## build & push image [docker]
+push-env:
+	@make build-env
+	@docker push ${pn}:${ctag}
