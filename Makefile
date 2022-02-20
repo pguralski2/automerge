@@ -178,6 +178,6 @@ docs-serve:
 ## -- docker --
 
 ## build image [docker]
-image-build:
+build-env:
 	@echo "building image..."
-	@docker build . -t ${pn}:latest
+	@docker build . -t ${pn}:${ctag}
