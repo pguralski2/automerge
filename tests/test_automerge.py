@@ -196,6 +196,7 @@ MOCK_STATS = {
         "abmamo/dockerscan",
     ],
     "unstable_repos": ["abmamo/mok"],
+    "neutral_repos": [],
     "stable_prs": [
         "https://github.com/abmamo/ferry.sh/pull/130",
         "https://github.com/abmamo/ferry.sh/pull/129",
@@ -243,4 +244,4 @@ def test_merge(mock_stats):  # pylint: disable=redefined-outer-name,unused-argum
     """test automerge merge command"""
     runner = CliRunner()
     result = runner.invoke(merge)
-    assert "fetching GitHub data..." in result.stdout
+    assert "automerge: fetching GitHub data using gh" in result.stdout

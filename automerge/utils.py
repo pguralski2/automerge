@@ -17,6 +17,7 @@ import pathlib
 import subprocess
 from typing import Optional, List
 
+import rich
 import tabulate
 
 
@@ -57,7 +58,7 @@ def chunks(lst, num_chunks):
     return split
 
 
-def col_print(data, cols=3):
+def col_print(data, cols=2):
     """print list of items as columns
 
     ***
@@ -70,7 +71,7 @@ def col_print(data, cols=3):
 
     ***
     """
-    print(tabulate.tabulate(chunks(data, cols)))
+    rich.print(tabulate.tabulate(chunks(data, cols)))
 
 
 def _execute(cmd):
@@ -188,11 +189,9 @@ def _stats(frepos: Optional[List[str]] = None, author: str = "dependabot"):
     (
         total_stable,
         total_unstable,
-        unstable_repos,
-        stable_repos,
         total_unstable_prs,
         total_stable_prs,
-    ) = (0, 0, [], [], [], [])
+    ) = (0, 0, [], [])
     for repo in repos:
         repo_stats = {}
         stable_prs = [
@@ -210,11 +209,6 @@ def _stats(frepos: Optional[List[str]] = None, author: str = "dependabot"):
             total_stable + len(stable_prs),
             total_unstable + len(unstable_prs),
         )
-        if len(unstable_prs) > 0:
-            unstable_repos.append(repo)
-        else:
-            stable_repos.append(repo)
-
         repo_stats["stable_prs"] = stable_prs
         repo_stats["unstable_prs"] = unstable_prs
         repo_stats["num_stable"] = len(stable_prs)
@@ -222,10 +216,24 @@ def _stats(frepos: Optional[List[str]] = None, author: str = "dependabot"):
 
         data[repo] = repo_stats
 
+    stable_repos = [
+        repo
+        for repo, repo_stats in data.items()
+        if (repo_stats["num_stable"] > 0 and repo_stats["num_unstable"] == 0)
+    ]
+    unstable_repos = [
+        repo for repo, repo_stats in data.items() if repo_stats["num_unstable"] > 0
+    ]
+    neutral_repos = [
+        repo
+        for repo, repo_stats in data.items()
+        if (repo_stats["num_stable"] == 0 and repo_stats["num_unstable"] == 0)
+    ]
     data["total_stable"] = total_stable
     data["total_unstable"] = total_unstable
     data["stable_repos"] = stable_repos
     data["unstable_repos"] = unstable_repos
+    data["neutral_repos"] = neutral_repos
     data["stable_prs"] = total_stable_prs
     data["unstable_prs"] = total_unstable_prs
     return data
@@ -248,44 +256,57 @@ def _display(stats, verbose=True):  # pylint: disable=too-many-branches
         key
         for key in list(stats.keys())
         if key
-        not in ["total_stable", "total_unstable", "stable_repos", "unstable_repos"]
+        not in [
+            "total_stable",
+            "total_unstable",
+            "stable_repos",
+            "unstable_repos",
+            "stable_prs",
+            "unstable_prs",
+            "neutral_repos",
+        ]
     ]
-    print(f"found {len(reponames)} repos")
+    rich.print(f"[bold green on yellow]TOTAL: {len(reponames)} repo(s)")
     if verbose:
         col_print(reponames)
-    print()
+    rich.print(f'[bold black on yellow]NEUTRAL: {len(stats["neutral_repos"])} repo(s)')
+    if verbose:
+        col_print(stats["neutral_repos"])
+    rich.print()
     if stats["total_stable"] == 0:
-        print("no PRs found for automerging!")
-        print(
-            f"total unstable repos (with PRs that require manual effort): {len(stats['unstable_repos'])}"  # pylint: disable=line-too-long
+        rich.print(
+            f"[bold red on yellow]UNSTABLE REPO(s): {len(stats['unstable_repos'])}"  # pylint: disable=line-too-long
         )
         if verbose:
             if stats["unstable_repos"]:
                 col_print(stats["unstable_repos"])
-        print(f"total unstable PRs: {len(stats['unstable_prs'])}")
+        rich.print(f"[bold red on yellow]UNSTABLE PR(s): {len(stats['unstable_prs'])}")
         if verbose:
             if stats["unstable_prs"]:
                 col_print([pr["url"] for pr in stats["unstable_prs"]])
-        print()
+        rich.print()
+        rich.print("[bold magenta on yellow]OUTCOME: no PRs found for automerging!\n")
     else:
-        print("PRs found for automerging!")
-        print(f"repos with PRs ready for automerging: {len(stats['stable_repos'])}")
+        rich.print(
+            f"[bold green on yellow]STABLE REPO(s): {len(stats['stable_repos'])}"
+        )
         if verbose:
             col_print(stats["stable_repos"])
-        print(f"total stable PRs: {len(stats['stable_prs'])}")
+        rich.print(f"[bold green on yellow]STABLE PR(s): {len(stats['stable_prs'])}")
         if verbose:
             if stats["stable_prs"]:
                 col_print([pr["url"] for pr in stats["stable_prs"]])
-        print(
-            f"total unstable repos (with PRs that require manual effort): {len(stats['unstable_repos'])}"  # pylint: disable=line-too-long
+        rich.print(
+            f"[bold red on yellow]UNSTABLE REPO(s): {len(stats['unstable_repos'])}"  # pylint: disable=line-too-long
         )
         if verbose:
             col_print(stats["unstable_repos"])
-        print(f"total unstable PRs: {len(stats['unstable_prs'])}")
+        rich.print(f"[bold red on yellow]UNSTABLE PR(s): {len(stats['unstable_prs'])}")
         if verbose:
             if stats["unstable_prs"]:
                 col_print([pr["url"] for pr in stats["unstable_prs"]])
-        print()
+        rich.print()
+        rich.print("[bold green on yellow]OUTCOME: PRs found for automerging!\n")
 
 
 def _merge(repo: str, pr_num: int, retries: int = 0, max_retry: int = 5):
@@ -307,7 +328,7 @@ def _merge(repo: str, pr_num: int, retries: int = 0, max_retry: int = 5):
     ***
     """
     if retries > max_retry:
-        print(f"couldn't merge {pr_num} tried {max_retry} times :(")
+        rich.print(f"Couldn't merge {pr_num} tried {max_retry} times :(")
         return None
     try:
         cmd = [
