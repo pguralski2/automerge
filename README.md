@@ -7,6 +7,8 @@ i) pass all checks & ii) are authored by **dependabot**)
 it runs on top of the official `gh` CLI and requires you to
 authenticate using `automerge login`
 
+![collage](automerge.png)
+
 ```
 
 ***
