@@ -1,8 +1,7 @@
 # `automerge`
 
-automerge is a simple python CLI that automatically
-merges GitHub PRs (by default it only merges PRs that
-i) pass all checks & ii) are authored by **dependabot**)
+automerge is a simple python CLI that automatically merges GitHub PRs. By default it only merges PRs that
+1) pass all checks 2) are authored by **dependabot**
 
 it runs on top of the official `gh` CLI and requires you to
 authenticate using `automerge login`
