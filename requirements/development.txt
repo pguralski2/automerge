@@ -1,4 +1,4 @@
-tabulate==0.8.9
+tabulate==0.8.10
 black==22.3.0
 pylint==2.14.1
 flake8==4.0.1
