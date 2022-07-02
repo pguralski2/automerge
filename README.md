@@ -7,7 +7,6 @@ authenticate using `automerge login`
 
 ![collage](automerge.png)
 
-```
 
 ***
 
