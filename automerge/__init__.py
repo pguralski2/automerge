@@ -40,10 +40,13 @@ authenticate using `automerge login`
 
 ***
 """
+import os
 import time
+import json
 import subprocess
 
 import click
+import requests
 import rich
 from rich.console import Console
 from rich.style import Style
@@ -51,6 +54,37 @@ from rich.style import Style
 from automerge.utils import _stats, _display, _repos, _merge
 
 console = Console()
+
+
+def slack_message(webhook_url, title, value):
+    """
+    send message to slack channel (using incoming webhooks)
+    params:
+        - webhook_url
+        - title
+        - value
+    returns
+        - none
+    """
+    hook = webhook_url
+    headers = {"content-type": "application/json"}
+    payload = {
+        "attachments": [
+            {
+                "fallback": "",
+                "pretext": "",
+                "color": "#f4f4f4",
+                "fields": [{"title": title, "value": value, "short": False}],
+            }
+        ]
+    }
+
+    resp = requests.post(hook, data=json.dumps(payload), headers=headers)
+    slack_style = Style.parse("white on yellow")
+    console.print(
+        "Response: " + str(resp.status_code) + "," + str(resp.reason),
+        style=slack_style + Style(underline=True, bold=True),
+    )
 
 
 @click.group()
@@ -107,6 +141,7 @@ def merge(repos, verbose, author=None):
     # author can be passed to stats -> get prs
     if author is None:
         author = "dependabot"
+    slack_webhook_url = os.environ.get("SLACK_WEBHOOK_URL", None)
     stats = _stats(repos, author=author)
     _display(stats, verbose=verbose)
     while len(stats["stable_prs"]) > 0:
@@ -134,6 +169,16 @@ def merge(repos, verbose, author=None):
                             f"automerge: error merging {pr_num} in {repo}\n",
                             style=error_style + Style(underline=True, bold=True),
                         )
+            if slack_webhook_url is not None:
+                slack_message(
+                    slack_webhook_url,
+                    "Automerge",
+                    f"Merged {pr_nums} PRs ({len(pr_nums)} total) in {repo}",
+                )
+        console.print(
+            "automerge: resting\n",
+            style=base_style + Style(underline=True, bold=True),
+        )
         time.sleep(60)
         stats = _stats(repos, author=author)
 

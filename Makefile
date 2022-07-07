@@ -17,6 +17,9 @@ endif
 ifeq ($(dtype),)
 dtype := development
 endif
+ifeq ($(ctag),)
+ctag := latest
+endif
 
 .DEFAULT_GOAL := help
 TARGET_MAX_CHAR_NUM=20
