@@ -21,6 +21,10 @@ ifeq ($(ctag),)
 ctag := latest
 endif
 
+ifeq ($(pkg_type),)
+pkg_type := develop
+endif
+
 .DEFAULT_GOAL := help
 TARGET_MAX_CHAR_NUM=20
 # COLORS
@@ -110,9 +114,9 @@ tag:
 pkg-build:
 	@echo "building..." && python3 setup.py build
 
-## install package
+## install package [pkg_type = editable | noneditable]
 pkg-install:
-	@echo "installing..." && python3 setup.py install
+	@echo "installing..." && python3 setup.py ${pkg_type}
 
 ## install package dependencies [dtype = development | production]
 deps:

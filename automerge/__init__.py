@@ -113,13 +113,26 @@ def logout():
     "--verbose", "-v", is_flag=True, help="display more detailed information."
 )
 def info(repos, verbose):
-    """merge all stable/unstable PRs"""
+    """get all stable/unstable PRs"""
     base_style = Style.parse("magenta on yellow")
     console.print(
         "automerge: fetching GitHub data using gh\n",
         style=base_style + Style(underline=True, bold=True),
     )
+    slack_webhook_url = os.environ.get("SLACK_WEBHOOK_URL", None)
     stats = _stats(repos)
+    if isinstance(stats, (str, bytes)):
+        console.print(
+            f"error: {stats}\n",
+            style=base_style + Style(underline=True, bold=True),
+        )
+        if slack_webhook_url is not None:
+            slack_message(
+                slack_webhook_url,
+                "Automerge",
+                f"error: {stats}\n",
+            )
+        return 
     _display(stats, verbose=verbose)
 
 
@@ -143,6 +156,19 @@ def merge(repos, verbose, author=None):
         author = "dependabot"
     slack_webhook_url = os.environ.get("SLACK_WEBHOOK_URL", None)
     stats = _stats(repos, author=author)
+    if isinstance(stats, (str, bytes)):
+        console.print(
+            f"error: {stats}\n",
+            style=base_style + Style(underline=True, bold=True),
+        )
+        if slack_webhook_url is not None:
+            slack_message(
+                slack_webhook_url,
+                "Automerge",
+                f"error: {stats}\n",
+            )
+        return 
+
     _display(stats, verbose=verbose)
     while len(stats["stable_prs"]) > 0:
         for repo in _repos():

@@ -184,6 +184,10 @@ def _stats(frepos: Optional[List[str]] = None, author: str = "dependabot"):
     """
     data = {}
     repos = _repos()
+
+    if isinstance(repos, (str, bytes)):
+        return repos
+
     if frepos:
         repos = [repo for repo in repos if repo in frepos]
     (
