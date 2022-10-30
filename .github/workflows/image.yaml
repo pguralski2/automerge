@@ -48,5 +48,5 @@ jobs:
           password: ${{ secrets.CR_PAT }}
       - name: build & push
         run: |
-          make build-env denv=production cname="ghcr.io/a6enez3r/automerge" ctag="latest"
+          docker build . -t ghcr.io/a6enez3r/automerge:latest
           docker push ghcr.io/a6enez3r/automerge:latest
