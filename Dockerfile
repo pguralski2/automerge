@@ -15,8 +15,7 @@ RUN apt install gh
 # Install
 RUN pip install -e /root/automerge
 
-# Authentication
-RUN gh auth login
+# Authentication: specify GH_TOKEN in the environment
 
 # Run on startup
 ENTRYPOINT [ "automerge" ]
