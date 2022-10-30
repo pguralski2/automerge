@@ -79,7 +79,7 @@ def slack_message(webhook_url, title, value):
         ]
     }
 
-    resp = requests.post(hook, data=json.dumps(payload), headers=headers)
+    resp = requests.post(hook, data=json.dumps(payload), headers=headers, timeout=30)
     slack_style = Style.parse("white on yellow")
     console.print(
         "Response: " + str(resp.status_code) + "," + str(resp.reason),
@@ -132,7 +132,7 @@ def info(repos, verbose):
                 "Automerge",
                 f"error: {stats}\n",
             )
-        return 
+        return
     _display(stats, verbose=verbose)
 
 
@@ -167,7 +167,7 @@ def merge(repos, verbose, author=None):
                 "Automerge",
                 f"error: {stats}\n",
             )
-        return 
+        return
 
     _display(stats, verbose=verbose)
     while len(stats["stable_prs"]) > 0:
