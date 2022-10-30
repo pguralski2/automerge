@@ -1,4 +1,4 @@
-# `automerge` [![pipeline](https://github.com/a6enez3r/automerge/actions/workflows/pipeline.yaml/badge.svg)](https://github.com/a6enez3r/automerge/actions/workflows/pipeline.yaml)
+# `automerge` [![pipeline](https://github.com/a6enez3r/automerge/actions/workflows/test.yaml/badge.svg)](https://github.com/a6enez3r/automerge/actions/workflows/test.yaml)
 
 automerge is a simple python CLI that automatically merges GitHub PRs. By default it only merges PRs that **1**) pass all checks **2**) are authored by **dependabot**
 
