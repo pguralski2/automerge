@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include requirements/production.txt
+graft automerge
+recursive-exclude * *.py[co]
+include versioneer.py
+include automerge/_version.py
