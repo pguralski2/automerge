@@ -51,7 +51,10 @@ import rich
 from rich.console import Console
 from rich.style import Style
 
+from automerge import _version
 from automerge.utils import _stats, _display, _repos, _merge
+
+__version__ = _version.get_versions()["version"]
 
 console = Console()
 
@@ -211,7 +214,3 @@ def merge(repos, verbose, author=None):
 
 if __name__ == "__main__":
     cli()
-
-from . import _version
-
-__version__ = _version.get_versions()["version"]
