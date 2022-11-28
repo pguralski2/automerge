@@ -105,7 +105,7 @@ pull-remote:
 tag:
 	git tag -d ${version} || : 
 	git push --delete origin ${version} || : 
-	git tag -a ${version} -m "latest" 
+	git tag -a ${version} -m "latest version" 
 	git push origin --tags
 
 ## -- python --
