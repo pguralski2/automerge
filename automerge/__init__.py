@@ -97,6 +97,10 @@ def cli():
     merges GitHub PRs
     """
 
+@cli.command()
+def version():
+    """get automerge version"""
+    print(__version__)
 
 @cli.command()
 def login():

@@ -23,7 +23,7 @@ setup(
     description="automerge GitHub PRs",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="http://github.com/abmamo/automerge",
+    url="http://github.com/a6enez3r/automerge",
     author="Abenezer Mamo",
     author_email="hi@abenezer.sh",
     license="MIT",
