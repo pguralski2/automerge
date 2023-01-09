@@ -11,5 +11,5 @@ pytest-cov==4.0.0
 pytest-profiling==1.7.0
 pyre-check==0.9.17
 bandit==1.7.4
-vulture==2.6
+vulture==2.7
 versioneer==0.28
