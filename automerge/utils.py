@@ -102,7 +102,7 @@ def _repos(frepos: Optional[List[str]] = None):
         ii) extract each url from result & store in a python list
         iii) get the owner/repo from each url (needed by `gh` for merging)
     """
-    cmd = ["gh", "repo", "list", "--json", "url"]
+    cmd = ["gh", "repo", "list", "--json", "url", "--limit", "1000"]
     cmd_process, stdout, stderr = _execute(cmd)
     if cmd_process.returncode != 0 or stderr:
         return stderr
@@ -116,7 +116,7 @@ def _repos(frepos: Optional[List[str]] = None):
 
 def _prs(
     repo: str,
-    author: str = "dependabot",
+    author: str = "app/dependabot",
     mergeable: str = "MERGEABLE",
     state: str = "OPEN",
     stability: str = "CLEAN",
@@ -168,7 +168,7 @@ def _prs(
     return prs
 
 
-def _stats(frepos: Optional[List[str]] = None, author: str = "dependabot"):
+def _stats(frepos: Optional[List[str]] = None, author: str = "app/dependabot"):
     """
     fetch stats for the current GitHub account
 
